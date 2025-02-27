@@ -1,0 +1,62 @@
+A sequence x1, x2, ..., xn is Fibonacci-like if:
+
+n >= 3
+xi + xi+1 == xi+2 for all i + 2 <= n
+Given a strictly increasing array arr of positive integers forming a sequence, return the length of the longest Fibonacci-like subsequence of arr. If one does not exist, return 0.
+
+A subsequence is derived from another sequence arr by deleting any number of elements (including none) from arr, without changing the order of the remaining elements. For example, [3, 5, 8] is a subsequence of [3, 4, 5, 6, 7, 8].
+
+_________________________________________________________________________________________________________________________
+
+Intuition & Thoughts: For this problem, we need to understand the Fibonacci sequence and what "Fibonacci like means". It means that there is a value z that is the sum of x and y. If there is, then we need to check if
+                      there is a value a that is the sum of y and z.
+
+                      Another realization is that we need access to the indices of the values of all times. If we are going to switch from x+y=z to y+z=a (fibonacci-like) and check if these elements z and a even exist,
+                      we need a hashmap that stores value-index pairs. That way we can check if arr[x] + arr[y] is present in the hashmap, and if so, we can then look for arr[y] + arr[z] and so on.
+
+                      Next, we need another hashmap to store the sequences as we go. The pair x,y needs to be stored somewhere so it can be used to find z. Along with the pair, we also need to know the length of the
+                      current substring (y,z would be 3, and z,a would be 4). So we need another hashmap to track this. One to track the pairs, and one to retrieve the indices.
+
+                      We have our two hashmaps and now need to loop over the input arr. We need to do a nested loop as we need to consider all i,j pairs. In our loop we first check if arr[i] + arr[j] is in our hashmap.
+                      If it is, we can either extend an existing subsequence, or define a new one of lenght 3 (the minimum length of a fibonacci-like sequence is 3). 
+
+                      Now use an if statement to check if an (i,j) pair exists in our dp hashmap. If it does, append a new (j,k) pair (k is arr[i] + arr[j]). The (j,k) pair should be set equal to the length that (i,j)
+                      reached + 1.
+
+                      If the (i,j) pair does not exist in the dp hashmap, then this is a new sequence, and we can store (i,j) = 3 in our hashmap.
+
+                      Then simply keep track of the max length as we traverse and return it at the end
+
+Implementation:
+
+        class Solution:
+            def lenLongestFibSubseq(self, arr: List[int]) -> int:
+                # Store all indices of the array in a hashmap
+                hashIndices ={}
+                for i in range(len(arr)):
+                    hashIndices[arr[i]] = i
+                
+                # DP With a Hashmap
+                dp={}
+                maxFib = 0
+                
+                # Use a nested loop to look for fibonacci-like sequences
+                for i in range(len(arr)):
+                    for j in range(i+1,len(arr)):
+                        # If the sum of i and j is in hashIndices, this is a fibonacci-like sequence
+                        if arr[i] + arr[j] in hashIndices:
+                            k = hashIndices[arr[i]+arr[j]]
+                            # Does i,j already exist (meaning it was initialized previously)
+                            if (i,j) in dp:
+                                # Move from 1-2 to 2-3 and add 1 as we added another node. 
+                                dp[(j, k)] = dp[(i,j)] + 1
+                            else:
+                                # Fibonacci subsequences must be at least 3-long. If 2-3 is not defined in dp, initialize it.
+                                dp[(j, k)] = 3
+                            # Keep track of maximum after every hashmap addition
+                            maxFib = max(maxFib, dp[(j, k)])
+                # Return the maximum
+                return maxFib
+                
+        
+                              
