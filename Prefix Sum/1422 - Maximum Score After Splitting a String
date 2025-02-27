@@ -1,0 +1,49 @@
+Given a string s of zeros and ones, return the maximum score after splitting the string into two non-empty substrings (i.e. left substring and right substring).
+
+The score after splitting a string is the number of zeros in the left substring plus the number of ones in the right substring.
+
+_________________________________________________________________________________________________________________________________________________________________
+
+Intuition & Thoughts -  After reading the question, the simple solution will be to count the amount of ones and find the maximum sum of left zeroes and right ones in a one-pass. However, counting the ones is an 
+                        additional O(n) operation that can slow down our code. While this is a viable solution, it is not included here as we can do better.
+
+                        We know that the maximum leftZeroes + rightOnes gives us our solution, but of course we cannot get the rightOnes without getting the total ones. But there is a trick here. We can rewrite
+                        rightOnes as totalOnes - leftOnes, giving the formula max(leftZeroes + totalOnes - leftOnes).
+
+                        Now the idea is that totalOnes is always constant and we can just add it at the end. We are counting the ones anyways, so rather than wasting a .count() operation, we can just count the left
+                        ones until the end of the string.
+
+                        Now that totalOnes is taken care of, iterate through the string and find the largest leftZeroes - leftOnes as per our formula. Then at the end simply add this maximum with the value in
+                        leftOnes at the end (at the end leftOnes should be equal to the totalOnes, make sure to use an if statement to check for the last element). This will yield the correct answer.
+
+                        Overall it saves us a .count() operation on a large string, which is great for time complexity. T/S = O(n), O(1)
+
+Implementation
+
+                        class Solution:
+                          def maxScore(self, s: str) -> int:
+                              # Define counter for zeroes, ones, and max leftZeroes - leftOnes
+                              z,o,m = 0, 0, -inf
+                        
+                              # Loop until the second to last element
+                              for n in range(len(s)-1):
+                                  # Increment the relevant counter
+                                  if s[n] == "0":
+                                      z+=1
+                                  else:
+                                      o+=1
+                                  
+                                  # If this leftZero - leftOne combination is a new max, save it
+                                  m=max(m, z-o)
+                              
+                              # Since our loop ends early (due to valid split constraint), check if the last element is a one, if so add it
+                              if s[-1] == "1":
+                                  o+=1
+                                  
+                              # return the maximum leftZeroes - leftOnes + totalOnes as our formula says
+                              return m + o
+
+        
+
+                        
+
