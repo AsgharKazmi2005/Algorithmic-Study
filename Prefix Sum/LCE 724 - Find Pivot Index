@@ -1,0 +1,40 @@
+Given an array of integers nums, calculate the pivot index of this array.
+
+The pivot index is the index where the sum of all the numbers strictly to the left of the index is equal to the sum of all the numbers strictly to the index's right.
+
+If the index is on the left edge of the array, then the left sum is 0 because there are no elements to the left. This also applies to the right edge of the array.
+
+Return the leftmost pivot index. If no such index exists, return -1.
+
+___________________________________________________________________________________________________________________________________________________________________
+
+Intuition & Thoughts: This problem is about using Prefix Sums. We know this becaus we are asked to work with the sum up until a certain value. This type of description,
+                      and generally the use of the word sum hint torwards this.
+
+                      The implementation itself is easy. There are many ways to arrive at the answer that use prefix sums and one such example is this. We know that
+                      an index is the pivot when both the left and right sides are the same. This also means that left + pivot + right must equal to the sum of the
+                      nums array.
+
+                      But read the last two sentences again, we have two rules. l == r, and l+pivot+r is the sum of the nums array. Therefore we can just simplify
+                      it to 2*l + pivot == sum(nums). Simply return the index when this condition is true.
+
+
+Implementation
+
+                  class Solution:
+                    def pivotIndex(self, nums: List[int]) -> int:
+                        # Define pivot index tracker, prefix sum counter, and get the total sum
+                        pivot, prefixSum, sumNums = 0, 0, sum(nums)
+                  
+                        # Loop through
+                        for i in range(len(nums)):
+                            # See if twice the prefix sum until the pivot index PLUS the pivot index value is equal to the total sum
+                            if 2*prefixSum + nums[pivot] == sumNums:
+                                # If it is, this is the pivot
+                                return pivot
+                            # If this index is not the pivot, add to the prefix sum and increment the pivot index
+                            prefixSum += nums[i]
+                            pivot+=1
+                        
+                        # Pivot was never found (potential optimization with a short circuit)
+                        return -1
