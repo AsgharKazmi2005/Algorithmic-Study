@@ -1,0 +1,148 @@
+Given two strings str1 and str2, return the shortest string that has both str1 and str2 as subsequences. If there are multiple valid strings, return any of them.
+
+A string s is a subsequence of string t if deleting some number of characters from t (possibly 0) results in the string s.
+
+__________________________________________________________________________________________________________________________________________________________________
+
+Intuition & Thoughts: This problem is incredibly difficult. Before trying, make sure to understand how to find the Least Common Subsequence (do LC 1143). If you know LCS, then it is immediately obvious that
+                      this problem is a 2D DP problem. Do not blame yourself if you did not get it as it is not obvious unless you have done LCS before.
+
+                      To solve, first do a simple LCS. I created a function find_lcs to modularize it. Create a 2D array of m+1 by n+1 elements. Each element is set to 0. We made our dimensions m+1 and n+1 to 
+                      give us an out of bounds column and row that are both set to 0.
+
+                      Then start traversing from the bottom right from position m-1, n-1 (not including the extra row/column of zeroes). If the two characters of str1[i] and str2[j] match, take the value directly
+                      diagonal from the current cell (stored in dp[i+1][j+1]), add one to it, and store it in the current cell. Note that the bottom left cell will ofcourse always have a 0 diagonal to it.
+
+                      If the characters are not the same, we have to make a decision. Should we skip a letter in i, or should we skip a letter in j. This decision is based on the current values in dp[i+1][j] 
+                      and dp[i][j+1]. dp[i+1][j] means we skip i which is the cell below the current cell, dp[i][j+1] means we skip j which is the cell to the right of the current cell. It is guarenteed that
+                      both these cells have been processed already due to the nature of backwards traversal 2D arrays. The bigger number between dp[i][j+1] amd dp[i+1][j] becomes the value of our current cell
+                      and the algorithm continues until we fully traverse. At the end, the max LCS should be in 0,0
+
+                      Now that our LCS 2D DP table is set up, we need to actually return the string of the LCS. So far we only know its length. Now we need to traverse the 2D DP and append the letters one by one.
+                      We also need to track the indexes i and j in str1 and str2 where str[i] == str[j] as these indexes need to be saved in our lists (iarr and jarr) as they will help us later. We also need an 
+                      lcs array to help us keep track of the LCS as we build it
+
+                      Now iterate over the DP 2D Array. If the characters str1[i] == str2[j], then this is part of the lcs. Append to our lcs array, and append i and j to their respective iarr, jarr array. Then
+                      increment i and j  (go diagonally) and continue
+
+                      If the characters are not equal, we need to choose to go down or right as we cannot go diagonal. This decision is made by going torwards the greater one. If dp[i+1][j] > dp[i][j+1], then we
+                      go i+1 and skip a letter in str1. Else we go j+1 and skip a letter in str2.
+
+                      Now continue until the LCS is fully built. Once done return the LCS array as a joined string, return the iarr, and return the jarr.
+
+                      _________
+
+                      Now the above function will calculate the LCS. We just need to place the rest of the characters in str1 and str2 around them. Initialize a string res. Then initialize a pointer for
+                      str1, str2, and the lcs string. 
+
+                      Use a while loop that runs until we traverse the entire LCS string (i<len(LCS)). While we are in here, we need two while loops. One for str1 and one for str2. Use the s1 and s2 pointers to
+                      iterate through str1 and str2 until s1 and s2 are equal to iarr[i] and jarr[i]. While looping, append chars to the res string. This is the key, iarr and jarr contain the index 
+                      locations of all the charaters in lcs. We can use the same pointer i as iarr, jarr, and lcs are all the same length. Once we reach the index in str1 where s1 == iarr[i], 
+                      we stop adding characters to our string res as now we reached a character in the subsequence which is lcs[i]. Do the same with str2 and its respective variables.
+
+                      Once both while loops stop, add lcs[i] to the result. Then increment all three pointers s1, s2, and i. Now repeat for each character in the subsequence until all subsequence characters
+                      are processed.
+
+                      But be careful, even though the LCS is now in res, we still need to ensure that characters after the LCS are also added. Luckily we have the s1 and s2 pointers already sitting one index
+                      after the last LCS character. Simply add str1[s1:] and str2[s2:] to the res string. Then return the res string.
+
+                      
+
+Implementation:
+
+
+                    class Solution:
+                      def shortestCommonSupersequence(self, str1: str, str2: str) -> str:
+                    
+                          # Define a helper method to help extrac the Longest Common Subsequence
+                          def find_lcs(str1, str2):
+                    
+                              # Create an m+1 by n+1 2D array of 0s
+                              m, n = len(str1), len(str2)
+                              dp = [[0] * (n + 1) for _ in range(m + 1)]
+                    
+                              # Traverse starting from (m-1,n-1) as this points to the last characters of m and n
+                              for i in range(m-1, -1, -1):
+                                  for j in range(n-1, -1, -1):
+                    
+                                      # If the letter is the same, it is part of the subsequence
+                                      if str1[i] == str2[j]:
+                                          # Go backwards diagonally, and increment the length of the subsequence by one 
+                                          dp[i][j] = dp[i+1][j+1] + 1
+                                      
+                                      # Else the letters were not the same. No increment.
+                                      else:
+                                          # The next diagonal becomes the max between the box below it and the box to the right. 
+                                          dp[i][j] = max(dp[i+1][j], dp[i][j+1])
+                                          # If the characters are different, we take the maximum LCS length from either:
+                                          # - `dp[i+1][j]` (skipping the current character in str1)
+                                          # - `dp[i][j+1]` (skipping the current character in str2)
+                                          # This ensures we always take the longest possible LCS up to this point.
+                                          
+                              # i and j to traverse str1 and str2
+                              i,j =0, 0
+                    
+                              # list to store the Longest common subsequence
+                              lcs=[]
+                    
+                              # Arrays to hold the indexes where the LCS values are found. This will help us build the Shortest Common Supersequence
+                              iarr=[]
+                              jarr=[]
+                              
+                              # Traverse the 2D DP and build the LCS
+                              while i<m and j<n:
+                                  # If the characters are the same
+                                  if str1[i] == str2[j]:
+                                      # Add it to our lcs list, and append the respective indexes to iarr and jarr. Then increment i and j
+                                      lcs.append(str1[i])
+                                      iarr.append(i)
+                                      jarr.append(j)
+                                      i+=1
+                                      j+=1
+                    
+                                  # If the letters are different, skip the largest between i+1,j and i,j+1 as that is where the LCS is
+                                  elif dp[i+1][j] > dp[i][j+1]:
+                                      i+=1
+                                  else:
+                                      j+=1
+                              
+                              # Retern the lcs as a string, and also return the two index lists
+                              return ["".join(lcs), iarr, jarr]
+                          
+                          # Destructure the return and define a result variable
+                          lcs, iarr, jarr = find_lcs(str1, str2)
+                          res=""
+                    
+                          # Define a pointer for str1, str2, and one for the Longest Common Subsequence itself
+                          s1, s2, i = 0,0,0
+                    
+                          # Loop until we fully traverse the LCS
+                          while i < len(lcs):
+                    
+                              # Loop thru str1 until we reach the next LCS character
+                              while s1 < iarr[i]:
+                                  # Append until we must stop to place an LCS character
+                                  res+=str1[s1]
+                                  s1+=1
+                              
+                              # Loop thru str2 until we reach the next LCS character
+                              while s2 < jarr[i]:
+                              # Append until we must sop to place an LCS character 
+                                  res+=str2[s2]
+                                  s2+=1
+                              
+                              # Now both s1 and s2 point to the same exact character as lcs[i]. Add lcs[i] to the resul.
+                              res+=lcs[i]
+                    
+                              # Move all three pointers forward
+                              i+=1
+                              s1+=1
+                              s2+=1
+                    
+                          # Append remaining characters of both strings (there may be leftovers in str1 and str2 after the last lcs character)
+                          res+=str1[s1:]
+                          res+=str2[s2:]
+                    
+                          # return the result
+                          return res
+           
