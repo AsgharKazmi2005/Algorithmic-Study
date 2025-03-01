@@ -1,0 +1,70 @@
+You are given a 0-indexed array nums of size n consisting of non-negative integers.
+
+You need to apply n - 1 operations to this array where, in the ith operation (0-indexed), you will apply the following on the ith element of nums:
+
+If nums[i] == nums[i + 1], then multiply nums[i] by 2 and set nums[i + 1] to 0. Otherwise, you skip this operation.
+After performing all the operations, shift all the 0's to the end of the array.
+
+For example, the array [1,0,2,0,0,1] after shifting all its 0's to the end, is [1,2,1,0,0,0].
+Return the resulting array.
+
+Note that the operations are applied sequentially, not all at once.
+
+__________________________________________________________________________________________________________________________________________________________________________________
+
+Intuition & Thoughts: First of all there are three ways so solve this problem. The obvious way is to use an additional data structure such as another array to store the numerica values, and pad remaining
+                      string with 0s. This works but uses unecessary space.
+
+                      Another option is a multi-pass solution where in one pass we permutate the array, then in the two passed after, we clean it up. However, these extra passes are unecessary and we can simplify
+                      it to another one pass.
+
+                      We simply need to keep track of where to place the next non-zero element. There is a common pattern here that if we have not yet encountered a zero, we simply swap the nonzeroes with themselves
+                      and increment. If we have found a zero, this creates an offset and the gap between the pointers grows by one each time a zero is found. 
+
+                      Initialize the zeroPointer at index zero, and loop over nums. If i+1 is in bounds and nums[i] == nums[i+1], we know that we must perform the operation. Multiply the number in index i by two.
+                      set the number in i+1 to zero.
+
+                      Next check that the current element in i is not zero so that we can properly place it. We are going to swap the value at i with the value at zeroPointer. Now if we have not yet encountered a 
+                      zero, then i will be equal to zeroPointer. Basically it will just swap with itself, meaning nothing happens.
+
+                      Now if we have encountered a zero, then zeroPointer will be lagging behind the i pointer and at each iteration it will swap a non-zero with a zero. If the gap between zeroPointer and i is 1,
+                      we are dragging one zero. If the gap is 2, we are dragging zeroes. So on and so forth. Anytime we swap a nonzero with the value in zeroPointer, ensure that we also increment zeroPointer so
+                      that it is looking at the next placement index.
+
+                      The difficult part of this approach is understanding that if we code this way, zeroPointer is always looking at either a zero, or the index i. This was the tricky part for me.
+
+                      We can simply return the array after traversing it. This is an O(n)t/O(1)s complexity solution and the most optimal one-pass. It is quite likely that an interviewer will ask you to do it in 
+                      one pass so it is important to ask. They may be satisfied with a O(n) space of a multi-pass solution, but doing it in one-pass is the best way. In place One-pass does have its issues:
+                      
+                      In-place algorithms overwrite the input to save space, but sometimes this can cause problems. Here are a couple of situations where an in-place algorithm might not be suitable:
+                      
+                      The algorithm needs to run in a multi-threaded environment without exclusive access to the array. Other threads might need to read the array as well and may not expect it to be modified.
+                      Even if there is only a single thread or the algorithm has exclusive access to the array while running, the array might need to be reused later or by another thread once the lock has been released.
+                      In an interview, always check whether the interviewer is okay with you overwriting the input. Be prepared to explain the pros and cons of doing so if asked.
+
+_____________________________________________________________
+
+Implementation:
+
+              class Solution:
+                  def applyOperations(self, nums: List[int]) -> List[int]:
+                      # Define n and a pointer that is looking at a zero
+                      n = len(nums)
+                      zeroPointer = 0
+
+                      for i in range(n):
+
+                          # If i+1 is within range, and the ith  = ith+1 number are equivalent
+                          if i + 1 < n and nums[i] == nums[i + 1]:
+                              # Multiply i by 2 and set i+1 to 0
+                              nums[i] *= 2
+                              nums[i + 1] = 0
+
+                          # If i is nonzero, place it in our string
+                          if nums[i] != 0:
+                              # Place i by swapping with the previous zero position with i
+                              nums[i],nums[zeroPointer] = nums[zeroPointer],nums[i]
+                              # zeroPointer moves up (it is guaranteed to be a zero or equal to i)
+                              zeroPointer += 1
+
+                      return nums
