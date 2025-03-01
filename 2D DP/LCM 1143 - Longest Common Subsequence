@@ -1,0 +1,45 @@
+Given two strings text1 and text2, return the length of their longest common subsequence. If there is no common subsequence, return 0.
+
+A subsequence of a string is a new string generated from the original string with some characters (can be none) deleted without changing the relative order of the remaining characters.
+
+For example, "ace" is a subsequence of "abcde".
+A common subsequence of two strings is a subsequence that is common to both strings.
+
+__________________________________________________________________________________________________________________________________________________________
+
+Intuition & Thoughts: This problem is a 2D DP problem. There are other ways, but DP is by far the most efficient. Furthermore, deriving the Longest Common Subsequence
+                      is a part of solving many harder 2D DP problems and it is a good application of 2D DP to learn. 
+
+                      Create a 2D array of m+1 by n+1 elements. Each element is set to 0. We made our dimensions m+1 and n+1 to give us an out of bounds column and 
+                      row that are both set to 0s and will stay at 0. All cells are initialized as 0s.
+
+                      Then start traversing from the bottom right from position m-1, n-1 (not including the extra row/column of zeroes). If the two characters of str1[i] and str2[j] match, take the value directly
+                      diagonal (down and right) from the current cell (it is stored in dp[i+1][j+1]), add one to it, and store it in the current cell. Note that the mth-row and nth column cells will 
+                      ofcourse always have a 0 diagonal to them.
+
+                      If the characters are not the same, we have to make a decision. Should we skip a letter in i, or should we skip a letter in j. This decision is based on the current values in dp[i+1][j] 
+                      and dp[i][j+1]. dp[i+1][j] means we skip i which is the cell below the current cell, dp[i][j+1] means we skip j which is the cell to the right of the current cell. It is guarenteed that
+                      both these cells have been processed already due to the nature of backwards traversal 2D arrays. The bigger number between dp[i][j+1] amd dp[i+1][j] becomes the length value of our current cell
+                      and the algorithm continues until we fully traverse the 2D array. At the end, the max LCS should be in 0,0
+
+__________________________________________________________________________________________________________________
+
+Implementation:
+
+                      class Solution:
+                          def longestCommonSubsequence(self, text1: str, text2: str) -> int:
+                              # Create a m+1 x n+1 2D array
+                              m = len(text1)
+                              n = len(text2)
+                              dp = [[0] * (n+1) for _ in range(m+1)]
+                      
+                              # Nested Loop
+                              for i in range(m-1, -1, -1):
+                                  for j in range(n-1, -1, -1):
+                                      if text1[i] == text2[j]:
+                                          dp[i][j] = dp[i+1][j+1] + 1
+                                      else:
+                                          dp[i][j] = max(dp[i][j+1], dp[i+1][j]) 
+                              return dp[0][0]
+
+
