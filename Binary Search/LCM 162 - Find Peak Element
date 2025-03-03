@@ -27,7 +27,7 @@ Intuition & Thoughts:   This is an example of a problem that is worded in a conf
                           3 - The middle element is the relative maximum itself (meaning both sides are lower and we should return)
                         
                         This drawing shows all three possibilities:
-
+                                ![All Possible Options for Middle Node](https://github.com/AsgharKazmi2005/Algorithmic-Study/blob/main/Images/LCM162-Diagram.png)
                         
                         So simply in out binary search we get the middle between the left and right pointer, and handle it conditionally based on the above rules.
                         Rules 1 and 2 can be combines as we can user >= to explicitly choose left or right in the case where we could go either way. We continue
