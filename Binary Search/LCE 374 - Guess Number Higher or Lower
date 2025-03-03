@@ -1,0 +1,68 @@
+We are playing the Guess Game. The game is as follows:
+
+I pick a number from 1 to n. You have to guess which number I picked.
+
+Every time you guess wrong, I will tell you whether the number I picked is higher or lower than your guess.
+
+You call a pre-defined API int guess(int num), which returns three possible results:
+
+-1: Your guess is higher than the number I picked (i.e. num > pick).
+1: Your guess is lower than the number I picked (i.e. num < pick).
+0: your guess is equal to the number I picked (i.e. num == pick).
+Return the number that I picked.
+
+__________________________________________________________________________________________________________________________________________________________________________________________________________
+
+Intuition & Thoughts:       This is a straight forward binary search problem. We are given a sorted input (integers 1 to n) and are searching for a number. It really does not get more obvious than this, but it is
+                            good practice for basic Binary Search structure.
+
+                            The one slight difficulty is that we have a pre-defined API that tells us if a given number is less than, greater than, or equal to the number we are searching for, and this may throw
+                            people off.
+
+                            To code the binary search, define the left pointer at 1 and the right pointer at n. Then do a while loop until the left and right pointers cross eachother. In this scenario they will 
+                            never cross as the number is guaranteed to be between 1 and n, but in other case, if l crosses r, then the number does not exist.
+
+                            Okay, now at the beginning of each while look, find the middle. In python we can derive it using the formula (l+r)//2. Python automatically deals with overflow so we do not need to
+                            use the l+(r-l)//2 syntax that you would use for other languages. Now all we need to do is to feed that middle value into the guess() API and check what it returns.
+
+                            If 0, we found our number. If 1, our guess is lower, so move the left pointer l to m+1 (just in front of the middle). If -1, our guess is too high, so move the right pointer r to m-1
+                            (just before the middle). With this, we are guaranteed to arrive at the number between 1 to n. This runs in O(log(n)) time and O(1) space.
+
+Implementation:
+
+                  # The guess API is already defined for you.
+                  # @param num, your guess
+                  # @return -1 if num is higher than the picked number
+                  #          1 if num is lower than the picked number
+                  #          otherwise return 0
+                  # def guess(num: int) -> int:
+                  
+                  class Solution:
+                    def guessNumber(self, n: int) -> int:
+                        # Define left and right pointer
+                        l,r= 1, n
+                  
+                        # Loop until left crosses the right pointer
+                        while l<=r:
+                            # Calculate middle and get API result
+                            m = (r+l)//2
+                            guessResult = guess(m)
+                  
+                            # Use conditionals to handle API output
+                            if guessResult == 1:
+                                # Our guess is too low, move the left pointer to m+1
+                                l=m+1
+                            elif guessResult == -1:
+                                # Our guess is too high, move the right pointer to m-1
+                                r=m-1
+                            else:
+                                # Got it, return m
+                                return m
+                        # Will not be reached in this case, but return 1 if not found
+                        return -1
+
+        
+
+
+
+  
