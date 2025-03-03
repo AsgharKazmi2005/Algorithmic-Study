@@ -40,15 +40,25 @@ Implementation:
 
     class Solution:
       def findPeakElement(self, nums: List[int]) -> int:
+          # define l as 0 and r as len(nums)-1 (the array is zero indexed as question states)
           l,r = 0, len(nums)-1
-    
+          
+          # loop until left and right are on the same node
           while l<r:
+              # find the midpoint
               m=(l+r)//2
               
+              #If left side is bigger then left (a leftwards hill OR a relative maximum / peak)
               if nums[m] > nums[m+1]:
+                  # Move right pointer to m (not m-1 as m could still be the peak)
                   r=m
+
+              # Else it is either a relative mininum or the right is bigger (rightwards hill). Either way we go right.
               else:
+                  # move left node to m+1
                   l=m+1
+
+          #return r or l as they point to a peak at the end
           return r
                               
                         
