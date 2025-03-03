@@ -1,0 +1,58 @@
+You are a product manager and currently leading a team to develop a new product. Unfortunately, the latest version of your product fails the quality check. Since each version is developed based on the previous version, all the versions after a bad version are also bad.
+
+Suppose you have n versions [1, 2, ..., n] and you want to find out the first bad one, which causes all the following ones to be bad.
+
+You are given an API bool isBadVersion(version) which returns whether version is bad. Implement a function to find the first bad version. You should minimize the number of calls to the API.
+
+________________________________________________________________________________________________________________________________________________
+
+Intuition & Thoughts:  Given the input of 1 to n, we should already begin to consider a Binary Search approach. We know this is binary search when we notice that there
+                       is a pivot to search where the version goes from good to bad. Looking for something in a sorted list ----> Binary Search
+
+                       This is not a straightforward binary search as the caveat here as we are looking for a pivot and not an element itself. Since we are looking for
+                       a pivot (the point where the version goes from good to bad), we must understand that we will continue to binary search until left and right
+                       are equal. There is no finding the element early as we never know if the version we are looking at is the FIRST bad one. There could easily be another
+                       bad one one node to the left. This is why we MUST shrink down to one element.
+
+                       Once we realize this, do a binary search. Set l to 1 and r to n. Continue while left and right do not cross. In the while loop, get the middle
+                       value by doing (l+r)//2. Python deals with overflow automatically, in other languages you must use l+(r-l)//2.
+                      
+                       If the middle version is good, then the first bad version is on the right, so move the left pointer to the middle+1. If the middle version is bad,
+                       move then the first bad version is either the one we are look at, or on the left. For this reason, we move the right pointer to the middle.
+
+                       Notice that we do not move the right pointer to m-1. The mth node could be the first bad one. If we remove it, then there is a chance that our
+                       slice from l to m-1 will only contain good versions and the first bad version is never found. This is the key to solving this problem.
+
+                       Then simply wait until the loop terminates. When the loop terminates, both the left and right pointer will be on the first bad version, so we can
+                       return either.
+
+                       Note, if we were looking for the last good version, we would reverse it so that the left is reset to m and the right is set to m-1. Doing it this
+                       way, both the left and right pointers will be on the last good version. This is a key binary search pattern.
+
+Implementation:
+
+                # The isBadVersion API is already defined for you.
+                # def isBadVersion(version: int) -> bool:
+                
+                class Solution:
+                  def firstBadVersion(self, n: int) -> int:
+                      # Define left, right, and middle
+                      l,r=1,n
+                      
+                      # Loop until left and right are on the same element
+                      while l<r:
+                
+                          # Get the middle node
+                          m=(l+r)//2 
+                          
+                          # If this is a bad version
+                          if isBadVersion(m):
+                              # The first bad version is either m or before m, so move right pointer to m
+                              r = m               
+                          else:
+                              # The first bad version is after m, so move left pointer to m+1
+                              l = m+1
+                              
+                      # return l or r
+                      return l
+       
