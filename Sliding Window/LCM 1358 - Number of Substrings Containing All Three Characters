@@ -1,0 +1,94 @@
+Given a string s consisting only of characters a, b and c.
+
+Return the number of substrings containing at least one occurrence of all these characters a, b and c.
+
+Example 1:
+
+Input: s = "abcabc"
+Output: 10
+Explanation: The substrings containing at least one occurrence of the characters a, b and c are "abc", "abca", "abcab", "abcabc", "bca", "bcab", "bcabc", "cab", "cabc" and "abc" (again).
+___________________________________________________________________________________________________________________________________________________________________
+
+Intuition & Thoughts:   This is a pretty obvious sliding window problem. We need to return the number of substrings that meet a conidition. Whenever this is the case,
+                        think sliding window. 
+
+                        Now that we know sliding window, we need a way to ensure the conidition is true. There is an amazing trick in this problem, and this will be
+                        shown after the conventional approach. The conventional approach is to use some sort of data structure (length 3 array, 3 boolean variables,
+                        or a hashmap). In this case a hashmap's length property will be the most effective way to check if all of a, b, and c are present.
+
+                        Now loop over the string. Continue to loop until the hashmap grows to length three indicating that the three letters a, b, and c are in the
+                        current window. Once this is true, we need to count every substring from the current window to the end, which is len(string)-r where r is the
+                        current index.
+
+                        For example, for 'abcabc', r is at index 2 when all characters are in the window. This means we found len(string) - 2 substrings containing
+                        a, b, and c. This equates to 6-2 or 4. The strings listed out are 'abc', 'abca', 'abcab', and 'abcabc'.
+
+                        Now once we found a valid window and added all the substrings containing that window, we increment the left point (remove an occurance of the leftmost char
+                        from our hashmap). Then we check again if the condition is true, if it is, we add another len(string)-r substrings. We shrink left until the condition
+                        breaks, in which case we go back to incrementing the r pointer. This process continues until we reach the end.
+
+Implementation:
+
+
+        count, l, abc=0, 0, defaultdict(int)
+
+        for r in range(len(s)):
+            # Add current character
+            abc[s[r]]+=1
+
+            # If len(abc) == 3, then all chars are present
+            while len(abc) == 3:
+
+                # Add every subtring from r to the end
+                count+=(len(s)-r)
+
+                # remove the left letter and see if condition holds
+                abc[s[l]]-=1
+                if abc[s[l]] == 0:
+                    del abc[s[l]]
+                l+=1
+
+                # If condition of the while loop does not hold, continue adding characters, else add len(abc)-r more.
+
+        return count
+
+_______________________________________________________________________________________________________________________________________________________
+
+Cool Trick: There is actually a cool way to solve this problem without the use of a hashmap or left pointer. It is not intuitive, so I will just state it. The idea is that
+            we completely flip the script,. Rather than saving the frequency of the characters and checking if the length of the hashmap is three, we instead check for
+            the minimum index between a, b, and c, and count all the substrings LEADING UP TO AND INCLUDING it. So essentially, we want the minimum index that
+            a, b, or c occur and add one to it each time a,b, and c all exist. Let's see it in an example:
+
+            abcabc
+
+            when all the letters are present, this is the state of our indexes: a->0, b->1, c->2 | Let's take the minimum which is 0, and add 1 which is 1
+            then we have bca where: a->3, b->1, c->2                                             | Let's take the minimum which is 1, and add 1 which is 2
+            then we have cab where: a->3, b->4, c->2                                             | Let's take the minimum which is 2, and add 1 which is 3
+            then we have abc where: a->3, b->4, c->5                                             | Let's take the minimum which is 3, and add 1 which is 4
+
+            in total we get 10, which is the correct answer. This method works for EVERY string. Again, it is not intuitive, but now you know :)
+
+
+Implementation:
+
+        # Track indexes of a, b, and c
+        abc=[-1,-1,-1]
+        count=0
+
+        # Loop over the whole string
+        for c in range(len(s)):
+            # use ordinality to set the most recent index of the current letter in our array
+            abc[ord(s[c])-ord("a")] = c
+
+            # Get the minimum index from our array
+            minAbc = min(abc)
+
+            # If the minimum is not -1 (a min of -1 indicates that the condition is not met) add min+1 to out count
+            count = count+minAbc+1 if minAbc>-1 else 0
+            
+        return count
+
+________________________________________________________________________________________________________________________________________________
+
+Time & Space: Both of the above solution are O(n) time complexity and O(1) space complexity. However, the second solution is quicker as it drops the two-pointer
+              sliding window approach.
