@@ -36,7 +36,7 @@ Intuition & Thoughts:
   (Note that no two adjacent nodes have the same height value, so plateaus do not exist.)
 _______________________________________________________________________________________________________________________________________
 
-Implementation:
+Implementation: 
 
     class Solution:
       def findPeakElement(self, nums: List[int]) -> int:
