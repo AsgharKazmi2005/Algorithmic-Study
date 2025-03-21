@@ -1,18 +1,23 @@
-You have information about n different recipes. You are given a string array recipes and a 2D string array ingredients. The ith recipe has the name recipes[i], and you can create it if you have all the needed ingredients from ingredients[i]. A recipe can also be an ingredient for other recipes, i.e., ingredients[i] may contain a string that is in recipes.
 
-You are also given a string array supplies containing all the ingredients that you initially have, and you have an infinite supply of all of them.
+LC Medium 2115 - Find All Possible Recipes from Given Supplies
 
-Return a list of all the recipes that you can create. You may return the answer in any order.
+Problem: 
+                You have information about n different recipes. You are given a string array recipes and a 2D string array ingredients. The ith recipe has the name recipes[i], and you can create it if you have
+                all the needed ingredients from ingredients[i]. A recipe can also be an ingredient for other recipes, i.e., ingredients[i] may contain a string that is in recipes.
+                
+                You are also given a string array supplies containing all the ingredients that you initially have, and you have an infinite supply of all of them.
+                
+                Return a list of all the recipes that you can create. You may return the answer in any order.
+                
+                Note that two recipes may contain each other in their ingredients.
 
-Note that two recipes may contain each other in their ingredients.
 
-
-Example 1:
-
-Input: recipes = ["bread"], ingredients = [["yeast","flour"]], supplies = ["yeast","flour","corn"]
-Output: ["bread"]
-Explanation:
-We can create "bread" since we have the ingredients "yeast" and "flour".
+                Example 1:
+                
+                Input: recipes = ["bread"], ingredients = [["yeast","flour"]], supplies = ["yeast","flour","corn"]
+                Output: ["bread"]
+                Explanation:
+                We can create "bread" since we have the ingredients "yeast" and "flour".
 
 
 
@@ -22,36 +27,37 @@ ________________________________________________________________________________
 Intuition & Thoughts: This is a tough problem. If you considered a set off the bat, then you are like me, so do not feel discouraged. It seems natural until we realize that the situation will not always be 
                       ideal for us. The set approach is naive. We must take a different approach.
 
-                      The idea here is to see that the recipes array and ingredients array seem incredible similar to an adjacency list. Think about it, Each node in recipes has vertices to nodes that it needs to
-                      create said recipe stored in the ingredients array. For example, to cook bread, we need yeast and flour, so our bread node would have a directional edge to both yeast and flour.
+                      The intuition here is to see that the recipes array and ingredients array seem incredibly similar to an adjacency list if we put them together.
+                      Think about it, Each node in recipes has vertices to nodes that it needs tocreate said recipe stored in the ingredients array. For example, to cook bread, we need yeast and flour, 
+                      so our bread node would have a directional edge to both yeast and flour.
 
                       This directional aspect helps us eliminate a potential approach, Union Find. Union Find is most effective on nondirectional graphs. Since this graph clearly has a directional, tree-like
                       relationship, we must use an algorithm closer to a Topological Sort (ie. BFS or DFS). 
 
                       Think about it, if we have [bread, sandwich] as our recipes, we obviously want to see if making bread is possible first because bread is included in the ingredients of sandwich. 
                       However, we are not guaranteed that bread will be processed first. What if we are given [sandwich, bread] as our recipe list? A naive solution would say that we cannot make a 
-                      sandwich because we have not made bread yet, but it is indeed possible to make bread if we switch up the order. 
+                      sandwich because we have not made bread yet, but it is indeed possible to make bread if we switch up the order. This is why a set wont help us here. It does not account for the order of recipes.
 
                       Now we have to realize that to correctly assess whether a recipe is derivable, we need to check if all of its ingredients are derivable. Some of those ingredients will also be recipes and
                       we will also have to see if their ingredients are derivable. The basic units that we already know are derivable are given in the supplies list, so this recursive pattern will stop somewhere.
-                      You must MUST think of this problem as a tree-like graph structure, and only then will you begin to realize that DFS or BFS is the correct approach.
+                      You must MUST think of this problem as a tree-like graph structure with the supplies as the leafs. Only then will you begin to realize that DFS (or BFS) is the correct approach.
 
-                      So, we take a recursive approach. For a sandwich for example, we check its ingredients against a 'can_cook' hashmap. The can_cook hashmap by default only has the supplies
-                      set to True as we build off them. Lets say we need [bread,meat] for a sandwich and meat is given in the supplies array. In this case, we do not need to perform any actions at it is already
+                      So, we take a recursive approach. For a sandwich for example, we check its ingredients against a 'can_cook' hashmap. The can_cook hashmap by default only has the given supplies
+                      set to True as we build off them. Lets say we need bread and meat for a sandwich and meat is given in the supplies array. In this case, we do not need to perform any actions at it is already
                       set to True in can_cook. However, for bread, we will notice that it is not declared in can_cook as we have not considered if we can make it or not. Again, the naive solution would just say no,
-                      but instead, we are going to use DFS recursion and now check if the ingredients of bread are derivable. If we have yeast and flour, we can return True for bread which will then bubble up and 
-                      return True for sandwhich as we now have both meat (from the supplies) and bread (derived from DFS as yeast and flour are supplies). 
+                      but instead, we are going to use DFS recursion and now check if the ingredients of bread are derivable. If we have yeast and flour in the supplies, we can return True for bread which will 
+                      then bubble up and return True for sandwhich as we now have both meat (from the supplies) and bread (derived from DFS as yeast and flour are supplies). 
 
                       Essentially, for each recipe, we are checking that all of the recipe ingredients can be derived from the given base supplies. If they cannot, than any recipe including that underivable
                       ingredient and that ingredient itself will be underivable (and hence recorded as False in can_cook). Any time this underivable ingredient shows up in a recipe, we will instantly know that
-                      the current recipe is impossible to make. Similarly, if we already confirmed that a recipe is derivable, it will be stored as True in can_cook, so we will know immediately and can therfore
-                      avoid unecessary recursion. This is similar to caching/memoization as it saves us some recursion overhead.
+                      the current recipe is impossible to make. Similarly, if we already confirmed that an ingredient is derivable, it will be stored as True in can_cook, so we will know immediately and can therfore
+                      avoid unecessary recursion. This is basically dp-style caching/memoization as it saves us from repititive recursion overhead.
 
-                      Now one HUGE thing to note is that the problem says that recipes can depend on eachother. If this is ever the case, then our graph has a cycle. In our recursion, Recipe A will continuously look
+                      Now one HUGE thing to note is that the problem says that recipes can depend on eachother. If this is ever the case, then our graph has a cycle. So in our recursion, Recipe A will continuously look
                       to see if ingredient B is derivable, and recipe B will continously look to see if ingredient A is derivable. We will enter deadlock, meaning an infinite loop, and a max recursion depth reached
-                      error. To fix this, before we even check the neighbors, set the can_cook of the current recipe to False as a safety. If we ever come accross a situation where recipe A and B depend on one
-                      another, recipe A will first be set to false, then dfs will be called on recipe B where recipe B will see that ingredient A is set to false and then therfore set itself to false, stopping any
-                      chances of a loop. Of course if we confirm all the ingredients are derivable, we can then rightfully set can_cook to True. Initializing it to false is just a method to stop any infinite loops
+                      error. To fix this, before we even check the neighbors, set the can_cook of the current recipe to False as a safety. If we ever come across a situation where recipe A and B depend on one
+                      another, recipe A will first be set to false in can_cook, then dfs will be called on recipe B where recipe B will see that can_cook[A] is set to false and then therfore set itself to false, stopping any
+                      chances of an infinite loop. Of course if we confirm all the ingredients are derivable, we can then rightfully set can_cook to True. Initializing it to false is just a method to stop any infinite loops
                       that occur because of mutual dependency. Note we can also create a visited set, this will serve the same purpose. The method of setting can_cook temporarily to false saves space.
 _______________________________________________________________________________________________________________________________________________
 
@@ -62,7 +68,8 @@ Time & Space Considerations:
                       The recursion overhead is memoized so that we are only ever searching for each of V recipes once, so it stays O(V+I) time complexity.
 
                       As far as space complexity, it will be O(V+I) as we are storing V recipe:ingredient pairs in our adjacency list, and are returning a list of length V. Then we are also using a can_cook 
-                      hashmap of length I.
+                      hashmap of length I. Note that when I say recipe:ingredient pairs, the ingredient part is simply an index that points to the given ingredients array. This is because a single index is more
+                      space efficient than a list of strings.
 
 ________________________________________________________________________________________________________________________________________________
 
