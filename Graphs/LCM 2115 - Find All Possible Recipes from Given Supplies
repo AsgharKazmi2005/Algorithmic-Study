@@ -52,10 +52,14 @@ Intuition & Thoughts: This is a tough problem. If you considered a set off the b
                       error. To fix this, before we even check the neighbors, set the can_cook of the current recipe to False as a safety. If we ever come accross a situation where recipe A and B depend on one
                       another, recipe A will first be set to false, then dfs will be called on recipe B where recipe B will see that ingredient A is set to false and then therfore set itself to false, stopping any
                       chances of a loop. Of course if we confirm all the ingredients are derivable, we can then rightfully set can_cook to True. Initializing it to false is just a method to stop any infinite loops
-                      that occur because of mutual dependency.
+                      that occur because of mutual dependency. Note we can also create a visited set, this will serve the same purpose. The method of setting can_cook temporarily to false saves space.
+_______________________________________________________________________________________________________________________________________________
+
+Time & Space Considerations:
 
                       Complexity wise, this Algorithm runs in O(V+I) time complexity where V is the number of nodes or recipes, and I is the number of total ingredients. This is because we are creating an adjacency
                       list for V nodes, and are creating a can_cook hashmap for I ingredients. Then finally we require an iteration over all the recipes to return the result. All else are efficient operations.
+                      The recursion overhead is memoized so that we are only ever searching for each of V recipes once, so it stays O(V+I) time complexity.
 
                       As far as space complexity, it will be O(V+I) as we are storing V recipe:ingredient pairs in our adjacency list, and are returning a list of length V. Then we are also using a can_cook 
                       hashmap of length I.
