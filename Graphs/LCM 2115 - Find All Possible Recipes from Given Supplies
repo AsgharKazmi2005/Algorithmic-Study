@@ -1,4 +1,18 @@
+You have information about n different recipes. You are given a string array recipes and a 2D string array ingredients. The ith recipe has the name recipes[i], and you can create it if you have all the needed ingredients from ingredients[i]. A recipe can also be an ingredient for other recipes, i.e., ingredients[i] may contain a string that is in recipes.
 
+You are also given a string array supplies containing all the ingredients that you initially have, and you have an infinite supply of all of them.
+
+Return a list of all the recipes that you can create. You may return the answer in any order.
+
+Note that two recipes may contain each other in their ingredients.
+
+
+Example 1:
+
+Input: recipes = ["bread"], ingredients = [["yeast","flour"]], supplies = ["yeast","flour","corn"]
+Output: ["bread"]
+Explanation:
+We can create "bread" since we have the ingredients "yeast" and "flour".
 
 
 
@@ -23,3 +37,43 @@ Intuition & Thoughts: The idea here is to see that the recipes array and ingredi
                       will also be underivable.
 
 ________________________________________________________________________________________________________________________________________________
+
+Implementation:
+
+          class Solution:
+              def findAllRecipes(self, recipes: List[str], ingredients: List[List[str]], supplies: List[str]) -> List[str]:
+          
+                  # Dictionary comprehension to create recipe: ingredient pairs for easy access to neighbors (adjacency list)
+                  recipe_index = {recipes[i]: i for i in range(len(recipes))}
+
+                  # A can_cook dictionary that holds True or False. We need this boolean to avoid cycles, and therefore cannot use a set
+                  can_cook={s:True for s in supplies}
+          
+                  # DFS function
+                  def dfs(r):
+
+                      # If we have ALREADY decided if this is cookable, return what value we have stored
+                      if r in can_cook: 
+                          return can_cook[r]
+                      
+                      # If this was not in our can_cook map, and is not in our recipes to be considered, it is impossible to ever get. Edge Case.
+                      if r not in recipe_index:
+                              return False
+          
+                      # Avoid Cyclical dependencies by setting the cookability of the current value to False before checking neighbors
+                      can_cook[r] = False
+          
+                      # Check to see if ALL neighbors are derivable (use our adjacency list for access to neighbors)
+                      for neighbor in ingredients[recipe_index[r]]:
+          
+                          # If at any point a neighbor (or other descendent) is not derivable, false should cascade up
+                          if not dfs(neighbor):
+                              can_cook[r] = False
+                              return False
+                      
+                      # If all neighbors are derivable, we can cook this recipe 
+                      can_cook[r] = True
+                      return True
+                  
+                  # Return all recipes r that are derivable via dfs(r)
+                  return [r for r in recipes if dfs(r)]
