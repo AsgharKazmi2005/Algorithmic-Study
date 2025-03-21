@@ -1,0 +1,25 @@
+
+
+
+
+
+________________________________________________________________________________________________________________________________________________
+
+Intuition & Thoughts: The idea here is to see that the recipes array and ingredient array seem incredible similar to an adjacency list. Think about it, Each node in recipes has vertices to nodes that it needs to
+                      create said recipe. For example, to cook bread, we need yeast and flour, so our bread node would have a directional edge to both yeast and flour.
+
+                      This directional aspect helps us eliminate a potential approach, Union Find. Union Find is most effective on nondirectional graphs. Since this graph clearly has a directional, tree-like
+                      relationship, we must use an algorithm closer to a Topological Sort (ie. BFS or DFS). Think about it, if we have [bread, sandwich] as our recipes, we obviously want to see if making bread is
+                      possible first because bread is included in the ingredients of sandwich. However, we are not guaranteed that bread will be processed first. What if we are given [sandwich, bread] as our recipe
+                      list? A naive solution would say that we cannot make a sandwich because we have not made bread yet, but it is indeed possible to make bread.
+
+                      Rather than backtracking, we take a recursive approach. For a sandwich for example, we check its ingredients against a can_cook hashmap. The can_cook hashmap by default only has the supplies
+                      set to True as we start with them. Lets say we need [bread,meat] for a sandwich and meat is given in the supplies array. In this case, we do not need to perform any actions at it is already
+                      set to True in can_cook. However, for bread, we will notices that it is not declared in can_cook. We have not considered if we can make it or not. Again the naive solution would just say no,
+                      but instead we are going to use DFS recursion and now check the ingredients of bread. If we have yeast and flour, we can return True for bread which will then bubble up and return True for 
+                      sand which as we now have both meat (from the supplies) and sandwich (derived from DFS). 
+
+                      Essentially, for each recipe, we are checking that all of the recipes ingredients can be derived from those base supplies. If they cannot, than any recipe including that underivable ingredient
+                      will also be underivable.
+
+________________________________________________________________________________________________________________________________________________
