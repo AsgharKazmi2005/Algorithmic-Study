@@ -1,0 +1,100 @@
+
+LCM 2737 - Find the Closest Marked Node
+
+Problem:
+
+You are given a positive integer n which is the number of nodes of a 0-indexed directed weighted graph and a 0-indexed 2D array edges where edges[i] = [ui, vi, wi] indicates that there is an edge from node ui to node vi with weight wi.
+
+You are also given a node s and a node array marked; your task is to find the minimum distance from s to any of the nodes in marked.
+
+Return an integer denoting the minimum distance from s to any node in marked or -1 if there are no paths from s to any of the marked nodes.
+
+________________________________________________________________________________________________________________________________________________
+
+Intuition & Thoughts: This problem is a textbook Dijkstra's Algorithm problem. We know this because we are asked for the shortest path from one node to another node.
+                      Other algorithms like Bellman Ford will also work, but no need to overcomplicate this one. Dijkstra will work perfectly fine in an interview.
+
+                      If you do not know, Dijkstra's algorithm helps us find the shortest path from one node to another on a weighted graph, and it works well in 
+                      both directed and undirected graphs. It uses a priority queue (heap) to always process the current shortest path.
+
+                      The way this problem works is that we are given a set of nodes and a set of edges that connect these nodes. A few nodes are 'marked' and we simply
+                      need to return the shortest path from the start node s, to ANY of these marked nodes. The first thing we must notice is that the marked nodes are
+                      in a list. In our implementation, we will have to check if the current node we are traversing is one of the marked ones, so it will be O(n) to 
+                      check each time if we check if the current node is marked. Because of this, the absolute first step is to turn the list of marked nodes into 
+                      a set for efficient lookups.
+
+                      Next we follow through with a dijkstra implementation. The first thing is to set up our adjacency list which you should already be familiar with
+                      if you are attempting graph problems. Simply map the nodes to their neigbors, but make sure to store (neighbor, weight) tuples for each edge.
+                      One thing to not is that the graph is directional, so we only want to map vertex u to vertex v and not vice versa.
+
+                      Then we simply set up a visited set. We need this because Dijkstra's algorithm guarantees that the first time we visit a node, it WILL be the
+                      shortest possible path to it (aka lowest possible weight), and so once we visit a node, there is no need to ever visit it again. With this,
+                      everytime we process a node, first we make sure that we havent already seen it, if we have, we skip it.
+
+                      The last part is the heap or priority queue. Since we are concerned with the lowest weight, the priority queue will hold tuples that are 
+                      (weight, node) pairs. Python sorts the heap based on the first variable, so to sort it by the lowest weight, we need to put the weight first.
+                      We initialize the priority queue with a weight of 0, and the start node is of course n.
+
+                      Then we loop while there are elements in the priority queue. Once a node is processed, we proceed to process all the neighbors by heappushing
+                      the neighbors along side with the total weight up until that neighbor node. We have access to these weights because of our adjacency list.
+                      Inside of our while loop, for each node, we will check if it is in the marked set. The first time a node is in the marked set, we return it
+                      instantly as Dijkstras algorithm GUARANTEES this is the shortest weight to a marked node. If the priority queue becomes empty, then we exit the
+                      while loop and return -1 because we concluded that s cannot reach any marked nodes.
+
+______________________________________________________________________________________________________________________________________
+
+Time and Space Complexity:
+
+                      The algorithm begins by converting the marked array into a set, which takes O(n) time. Then, it constructs the adjacency list representation 
+                      of the graph in O(n+m), where each node and its edges are added once.
+
+                      The main part of the algorithm is Dijkstra’s shortest path computation, which processes each node at most once and each edge at most once. 
+                      The priority queue operations (insertion and deletion) take O(logn) time per operation. Since each node is added to the queue at most once 
+                      and each edge results in at most one update operation, the total complexity of Dijkstra’s algorithm is O((n+m)logn)
+
+                      As far as space complexity, we need to store the adjacency list, the visited set, and the marked set. Altogether this becomes O(n+m).
+
+______________________________________________________________________________________________________________________________________
+
+Implementation:
+
+                    class Solution:
+                        def minimumDistance(self, n: int, edges: List[List[int]], s: int, marked: List[int]) -> int:
+                            # Create set for constant time lookups
+                            marked = set(marked)
+                    
+                            # Add neighbor, weight pairs into adjacency list
+                            dir_adj=defaultdict(list)
+                            for edge in edges:
+                                dir_adj[edge[0]].append((edge[1], edge[2]))
+                            
+                            # Set for nodes we already visited
+                            set_visited=set()
+                    
+                            # Priority Queue of weight, node pairs
+                            pq = [(0, s)]
+                            
+                            # Priority Queue
+                            while pq:
+                    
+                                # Pop the weight of the current path and the current node from the Priority Queue
+                                cur_weight, node = heapq.heappop(pq)
+                    
+                                # If we already visited this node before, there was a quicker way to get here, so kill off this path
+                                if node in set_visited:
+                                    continue
+                                
+                                # If this is our first time at this node, add the node to our visit set as this is the most optimal way here
+                                set_visited.add(node)
+                                
+                                # If the current node is in the marked set, return the current weight. This is guaranteed to be the minimum possible weight.
+                                if node in marked:
+                                    return cur_weight
+                                
+                                # Go through all the neighbors by pushing them onto the heap priority queue
+                                for neighbor in dir_adj[node]:
+                                    heapq.heappush(pq, (cur_weight+neighbor[1], neighbor[0]))
+                    
+                            # If we traverse the whole priority queue, then a marked node was NEVER reached starting from s
+                            return -1
+
