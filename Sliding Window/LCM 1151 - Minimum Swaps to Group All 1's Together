@@ -8,14 +8,14 @@ Intuition & Thoughts:   First of all, if you ever see a string of ones and zeroe
 
                         But how can we use a sliding window to find how many ones we need to swap? Well the idea is that we are given a binary array, so let's say we had an array [1, 0, 0, 1, 1].
 
-                        Now if we are given the subarray [1, 0, 0] and we know that there are 3 ones total, it is clear that the number of zeroes in the subarray (2) is how many swaps we need. This is the key to the
-                        problem.
+                        Now if we are given the subarray [1, 0, 0] and we know that there are 3 ones in the array total, it is clear that the number of zeroes in the subarray (which is 2) is how many swaps we need. 
+                        This is the key to the problem.
 
-                        Now for one oversight, how do we know what SIZE subarray to check for? Well, the size of a subarray with all ones will be equal to arr.count(1) which is the count of ones in the array. So
+                        Now for one issue, how do we know what SIZE subarray to check for? Well, the size of a subarray with ALL ones will be equal to arr.count(1) which is the count of ones in the array. So
                         the size of our sliding window is equal to the number of ones present in the array.
 
                         So to put the idea together, we need to find the MINIMUM amount of zeroes in a subarray of size arr.count(1). So for [1, 0, 1, 0, 1, 1, 0], we are checking windows of size 4 and counting
-                        zeroes. You will realize that window of size 4 arr[2:6], which is [1, 0, 1, 1], results in the least possible zeroes.
+                        zeroes. You will realize that window of size 4 arr[2:6], which is [1, 0, 1, 1], results in the least possible zeroes, so we return 1 as we would only need one swap.
 
                         Epic.
 
