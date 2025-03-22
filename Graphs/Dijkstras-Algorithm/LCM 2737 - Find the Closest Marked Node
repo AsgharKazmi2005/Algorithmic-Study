@@ -20,26 +20,34 @@ Intuition & Thoughts: This problem is a textbook Dijkstra's Algorithm problem. W
                       The way this problem works is that we are given a set of nodes and a set of edges that connect these nodes. A few nodes are 'marked' and we simply
                       need to return the shortest path from the start node s, to ANY of these marked nodes. The first thing we must notice is that the marked nodes are
                       in a list. In our implementation, we will have to check if the current node we are traversing is one of the marked ones, so it will be O(n) to 
-                      check each time if we check if the current node is marked. Because of this, the absolute first step is to turn the list of marked nodes into 
-                      a set for efficient lookups.
+                      check each time we check if the current node is marked which is computationally expensive if there are many marked nodes. Because of this, 
+                      the absolute first step is to turn the list of marked nodes into a set for efficient lookups.
 
                       Next we follow through with a dijkstra implementation. The first thing is to set up our adjacency list which you should already be familiar with
                       if you are attempting graph problems. Simply map the nodes to their neigbors, but make sure to store (neighbor, weight) tuples for each edge.
-                      One thing to not is that the graph is directional, so we only want to map vertex u to vertex v and not vice versa.
+                      One thing to note is that the graph is directional, so we only want to map vertex u to vertex v and not vice versa as you would do in a
+                      undirectional graph.
 
                       Then we simply set up a visited set. We need this because Dijkstra's algorithm guarantees that the first time we visit a node, it WILL be the
-                      shortest possible path to it (aka lowest possible weight), and so once we visit a node, there is no need to ever visit it again. With this,
-                      everytime we process a node, first we make sure that we havent already seen it, if we have, we skip it.
+                      shortest possible path to it (aka lowest possible weight), and so because we only care about the shortest path, once we visit a node, there is
+                      no need to ever visit it again. So everytime we process a node, first we make sure that we havent already seen it, if we have, we skip it.
 
                       The last part is the heap or priority queue. Since we are concerned with the lowest weight, the priority queue will hold tuples that are 
                       (weight, node) pairs. Python sorts the heap based on the first variable, so to sort it by the lowest weight, we need to put the weight first.
-                      We initialize the priority queue with a weight of 0, and the start node is of course n.
+                      We initialize the priority queue with a weight of 0, and the start node is ofcourse s (leetcode input).
 
                       Then we loop while there are elements in the priority queue. Once a node is processed, we proceed to process all the neighbors by heappushing
                       the neighbors along side with the total weight up until that neighbor node. We have access to these weights because of our adjacency list.
-                      Inside of our while loop, for each node, we will check if it is in the marked set. The first time a node is in the marked set, we return it
-                      instantly as Dijkstras algorithm GUARANTEES this is the shortest weight to a marked node. If the priority queue becomes empty, then we exit the
-                      while loop and return -1 because we concluded that s cannot reach any marked nodes.
+                      This part tends to confuse a lot of people, but essentially Dijkstra's algorithm goes down a bunch of different paths and it adds the weights
+                      as we go down the paths. The way we actually add them is when we push neighbors to the priority queue. Because we stored (neighbor, weight) 
+                      pairs in our adjacently list, when we add neighbors to the priority queue, the new total weight becomes the current weight PLUS the weight
+                      on the edge from our current node to the neighbor node. This extra edge weight is derived from the (neighbor, weight) tuples in our adjacency
+                      list.
+
+                      Now inside of our while loop, for each node, we will check if it is in the marked set. The first time a node is in the marked set, we return it
+                      instantly as Dijkstras algorithm GUARANTEES this is the shortest weight to a marked node from node s.
+
+                      If the priority queue becomes empty, then we exit the while loop and return -1 because we concluded that s cannot reach any marked nodes.
 
 ______________________________________________________________________________________________________________________________________
 
