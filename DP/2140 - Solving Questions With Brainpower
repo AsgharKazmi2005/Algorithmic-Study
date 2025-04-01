@@ -77,3 +77,8 @@ Code:
                   
                   # dp[0] holds the best possible score
                   return dp[0]
+
+__________________________________________________________________________________________________________________________________________________________________________________________________________
+
+Time & Space Complexity:  The time complexity is O(n) as we are only iterating through the questions backwards, and creating/editing a dp array of size n+1
+                          The space complexity is O(n) as we are storing this dp array of size n+1.
