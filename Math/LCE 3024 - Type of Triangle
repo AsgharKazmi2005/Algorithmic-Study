@@ -1,0 +1,53 @@
+You are given a 0-indexed integer array nums of size 3 which can form the sides of a triangle.
+
+A triangle is called equilateral if it has all sides of equal length.
+A triangle is called isosceles if it has exactly two sides of equal length.
+A triangle is called scalene if all its sides are of different lengths.
+Return a string representing the type of triangle that can be formed or "none" if it cannot form a triangle.
+
+______________________________________________________________________________________________________________________
+
+Intuition & Thoughts:
+
+This problem focuses on your understanding of geometry. Given the three sides of a triangle in [a, b, c] format, we need
+to tell if a triangle can be created, and what type of triangle it is, so lets handle these seperately in two parts.
+
+1) Is this a triangle?
+  For a shape with sides a, b, c to be a triangle, one side must not be larger than the sum of the two others. This creates
+  three conditions: a<b+c, b<a+c, c<a+b
+  
+  Now rather than checking three times, we can simply confirm that the longest side is less than the sum of the two shorter 
+  sides by sorting the nums array and comparing nums[0] < nums[1]+nums[2]. Now we can simply check this boolean and return none
+  if it is false
+
+2) What kind of triangle?
+Triangles can be equilateral, isosceles, and scalene. Since our nums array is already sorted, we can simply compare values
+to check for equivalency. If nums[0] (the largest side) is equal to nums[2] the shortest side, then the triangle must be|
+equilateral. Then if nums[1] == nums[2] or nums[0] == nums[1], the triangle must be isoscles as two sides match while one
+does not. Then of course if no sides match it is scalene.
+
+Another method is to create a set from the array and simply count the number of unique elements. 3 Uniques is scalene,
+2 Uniques is isosceles, 1 Unique means equilateral. Step 1 remains the same.
+_______________________________________________________________________________________________________________________
+
+Code:
+
+class Solution:
+    def triangleType(self, nums: List[int]) -> str:
+        nums.sort(reverse = True)
+        # But we must check that a triangle can actually be formed
+        # To do this, we must understand that the length of any side (a) must not exceed the sum of the other two sides (b and c)
+        valid_triangle = nums[0]<nums[1]+nums[2] 
+        if not valid_triangle:
+            return "none" 
+         
+
+        if nums[0] == nums[2]:
+            return "equilateral"
+        elif nums[0] == nums[1] or nums[1] == nums[2]:
+            return "isosceles"
+        else:
+            return "scalene"
+
+
+
