@@ -1,0 +1,106 @@
+Problem:
+  Given an m x n integer matrix matrix, if an element is 0, set its entire row and column to 0's.
+  
+  You must do it in place.
+
+________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+Intuition & Implementation (2 Approaches):
+  For this problem, the intuitive approach is a good one. Of course first you think to find each zeros, and then zero out the row and column of each zero, and this does work, but can have repeated calculations.
+  To fix this uneeded repition, we can just store the rows/columns to be zeroed out in sets.
+  
+  So here is what we will do. Define a set to hold the rows to be zeroed out (set_x) and also a set for the columns (set_y). Then loop over the matrix and if any coordinate i,j is a 0, simply add i to set_x, and
+  add j to set_y. Finally do another loop over the matrix. If any coordinate i,j has an i value that is in set_x (meaning the row is meant to be zeroed) or the j value is in set_y (meaning the column is meant to
+  be zeroed), then of course set that coordinate i,j to zero. This will solve our problem in place and is very simple to code.
+  
+  Now the issue here is that we need extra space, that being our two sets that can theoretically scale to O(n+m). In our case, we can sneakily manipulate our matrix to store "markers" for each row or column that needs
+  to be zeroed. So what we will do is this: loop through all rows/columns excluding the first column. Now the big question here is why are we skipping the first column. The answer is that we want to store markers
+  for each row/column in the 0th index. For example, if there is a 0 located in row 2, column 3 (coordinates 2,3), then the 0th index of row 2 and the 0th index of column 3 should both be set to zero. Now the issue
+  is that the first row and first column both share the 0,0 square, so if we process the top left cell first, it will mess up all our future markers, so we skip it and process it seperately at the end.
+  
+  Okay, now that we understand why we need to skip the first column, we can continue with the loop. Loop through and set the necessary [0][j] and [i][0] cells to zero. Now one additional thing we are going to do is
+  introduce a flag to see if there is a zero anywhere in the first column as we loop. Remember, we are not looping over the first column due to the issue discussed in the previous paragraph, but we still need to know
+  if there is a zero in that first column, so we might as well save ourselves a loop and just do it as we loop here. To do this, as we loop through the r rows, we will simply check the 0th index of the row (the 0th index 
+  of each row is part of column 1) and update our flag if it is zero. This flag is best understood by viewing the code.
+  
+  Once done, do exactly what we did with the set-based approach, but instead use our markers. Loop over each index i,j, and if [i][0] or [0][j] is 0, then we set the current cell to 0. Cool, the code is almost perfect,
+  except for that trick first row/column. At this point there are cases where neither is properly set. For example, if the first row is [0, 1, 1, 1, 1 ...], this means that aside from the 1st column (that we skipped),
+  there are no zeroes in any other column. This means the first row should be zeroed out, but because we never processed the first column, it is not zeroed out. Now this is of course a very unlikely scenario, but it is 
+  an edge case, so after our two loops (1 to set markers, the other to use them), we need an additional loop. First check if matrix[0][0] is 0, if it is, we must loop through the whole first row and zero it out.
+  
+  Awesome, now everything is done except for that first column we skipped. Luckily we have a flag that tells us if we have encountered a zero, so we can know if we need to zero out the column in constant time. If so, we 
+  simply loop over the first column and zero it out. After this we are done. Of course there are many other ways to do this problem (handling 0,0 differently, switching order of x and y, etc.), but all are nearly the same
+  space and time wise
+
+________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+Time & Space Complexity:
+  The Time complexity is as follows: O(nm) for looping over our array to set markers, then another O(nm) to actually use those markers to zero out the necessary cells, then an optional O(m) if our 0,0 cell is 0, (meaning
+  that we need to zero out our first row of size m) and then another O(n) if our flag tells us we need to zero out the first column. Combining together, that becomes 2*O(nm) + O(n) + O(m) which is just O(nm) after simplifying.
+  Note that the time complexity for approach one (set-based) is the same.
+  
+  As far as space, by using markers, we eliminate the need for sets, so rather than using O(n+m) space (meaning each row and column needs to be zeroed) in sets, we can save the space and run in constant or O(1) time.
+
+Code:
+
+        # Approach 1 [Not Spact-Optimized]
+
+        # Define a set for the x rows and y columns that need to be zeroed out
+        set_x = set()
+        set_y = set()
+
+        # Loop through the matrix
+        for i in range(len(matrix)):
+            for j in range(len(matrix[0])):
+                # If we encounter a zero, store that row/column into our sets
+                if matrix[i][j] == 0:
+                    set_x.add(i)
+                    set_y.add(j)
+
+        # For each cell, check if i or j are in our x/y sets, if so, zero out the cell
+        for i in range(len(matrix)):
+            for j in range(len(matrix[0])):
+                if i in set_x or j in set_y:
+                    matrix[i][j] = 0
+        # return the matrix
+        return matrix
+
+        # ______________________________________________________________________________
+        
+        # Approach 2 [Space-optimized: O(1)]
+
+        # set a flag to check if we ever encounter a zero in the first column
+        is_col=False
+
+        # Loop once
+        for i in range(len(matrix)):
+            # If we ever see a 0 in the first column, update our flag to True
+            if matrix[i][0] == 0:
+                is_col = True
+            # Check all excluding first column (we check seperately at the end)
+            for j in range(1, len(matrix[0])):
+                # If 0, change both the row and column to zero, this will help us save space
+                if matrix[i][j] == 0:
+                    matrix[i][0] = 0
+                    matrix[0][j] = 0
+
+        # Loop through the inner portion (no 1st column or 1st row)
+        for i in range(1, len(matrix)):
+            for j in range(1, len(matrix[0])):
+                # If the 0th index of the row or column is 0, then change the value to a zero
+                if matrix[i][0] == 0 or matrix[0][j] == 0:
+                    matrix[i][j] = 0
+
+        # Since the top left cell is part of row 1, check if row 1 needs to be zeroed out.
+        if matrix[0][0] == 0:
+            for j in range(len(matrix[0])):
+                matrix[0][j] = 0
+
+        # Check our column flag that tells us if a zero was spotted in column 1
+        if is_col:
+            # If it was, zero out the first column
+            for i in range(len(matrix)):
+                matrix[i][0] = 0
+
+        # Return the matrix
+        return matrix      
