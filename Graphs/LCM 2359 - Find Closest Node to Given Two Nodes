@@ -1,0 +1,113 @@
+Problem:
+
+You are given a directed graph of n nodes numbered from 0 to n - 1, where each node has at most one outgoing edge.
+
+The graph is represented with a given 0-indexed array edges of size n, indicating that there is a directed edge from node i to node edges[i]. If there is no outgoing edge from i, then edges[i] == -1.
+
+You are also given two integers node1 and node2.
+
+Return the index of the node that can be reached from both node1 and node2, such that the maximum between the distance from node1 to that node, and from node2 to that node is minimized. If there are multiple answers, return the node with the smallest index, and if no possible answer exists, return -1.
+
+Note that edges may contain cycles.
+
+________________________________________________________________________________________________________________________________________
+
+Intuition & Implementation:
+
+This problem is very tricky, so lets break it down. One thing we notices is that the graph is directed, meaning that we can only go from node A to B and not from B to A. Another thing is that each node has AT MOST 1 outgoing
+edge, meaning if we have an edge A to B, A cannot go to any other node. Third, cycles are possible, meaning an A->B->C->A chain is possible, so we also have to deal with that. With graph problems, its good to understand the
+graph you are dealing with before trying anything.
+
+Now lets see what we are asked to do. First we want the the node that can be reached from node1 and node2, meaning we do not consider nodes that either or cannot reach. Now that we understand that, lets call that mystery node
+x. We want the maximum of the pair of distance from node 1 to x and node 2 to x to be minimized. This is a very confusing statement, so its good to break it down. Node 1 has a path to this node x, lets say node 1 is 2 nodes
+from x. Node 2 also has a path to this node x, lets say node 2 is 6 nodes from x. In this cases the maximum amongst the pair (2,6) is of course 6. But this is only arbritrary node x. There may be another node y where
+the pair of distances is (4,5) which means node1 is 3 nodes away from y, and node x is 4 nodes away from y. In this case the maximum of the pair is 5, and 5 is smaller than the 6 we had when using node x, so we can return
+the index for node y in this case.
+
+Now note, although 4+5 (9) is greater than 2+6 (8), the max node of 4+5 (5) is less than the max node of 2+6 (8). The point of this specific example to show that the shortest path does not always yield the minimum max node.
+A lot of people see a problem like this and go for a shortest path algorithm, but edge cases like this mean that we cannot.
+
+What we must do instead is create two arrays that hold the distances it takes to get from node 1/node 2 to all other nodes. If it is impossible, we can set it to len(edges) which is unreachable, or simply infinity. To do this,
+loop through each either recursively or iteratively, and count the depth as you go along. Since each node only has one outgoing edge in the edges array, we can simply use a while loop, there is no need for a queue. Queues are
+useful when there are multiple edges, not in this case. Then simply create those arr1 and arr2 array. While you create them, ensure that there are no cycles. The way we do this is to utilize the fact that we initialized
+arr1 and arr2 with infinity (or len(edges)), meaning that if an we have an outgoing edge to any node that already has a depth value, meaning if we see that C is already 2 edges away from A in A->B->C->A, then we just break
+to avoid the infinite loop. In other words, we simply check that each incoming node is infinity/len(edges) before continuing the DFS.
+
+Once your arr1 and arr2 are built, it should look something like this (with 4 nodes):
+
+[0, 4, 1, 2]
+[4, 0, 1, 2]
+
+Now loop through each index i, and (arr1[i], arr2[i]) become our pairs. Now remember, if we ever see len(edges) (which in this case is 4) in either arr1[i] or arr2[i], we skip because either one or both node 1 and node 2
+cannot reach that index i. So we simply go through the valid pairs, which in this case is just (1,1) and (2,2), and we can see that the minimum of the max of each pair is 1. So we return 2, the index where the pair (1,1)
+is found.
+
+__________________________________________________________________________________________________________________________________________
+
+Time & Space Complexity
+
+The time complexity of this code is O(n)+O(n)+O(n). Once while loop does a DFS over n nodes from node 1, another while loop for node 2, and the third loop which is a for loop combines arr1 with arr2 (though this extra
+for loop can be avoided if desired). Simplified, the TC is O(n) where n is the number of nodes
+
+The space complexity is also O(n)+O(n) where n is the number of nodes as we need two arrays of size n to store the DFS depths for node1 and node2. Simplified this is O(n)
+
+__________________________________________________________________________________________________________________________________________
+
+Code:
+
+class Solution:
+    def closestMeetingNode(self, edges: List[int], node1: int, node2: int) -> int:
+        # Distance from node1 to all other nodes (maxed by default)
+        arr1 = [len(edges)] * len(edges)
+        # Distance from node2 to all other nodes (maxed by default)
+        arr2 = [len(edges)] * len(edges)
+
+        # PART 1 - DFS from Node 1
+        # i counts the depth
+        i=0
+        # Loop while there isnt a dead end (!= -1)
+        while edges[node1] != -1:
+            # If Cyclical, Break
+            if arr1[node1] != len(edges):
+                break
+            # set the depth of the node in arr1, increment, move to next node
+            arr1[node1] = i
+            i+=1
+            node1 = edges[node1]
+        # If we broke cause of a dead-end, store that last node's depth
+        if edges[node1] == -1:
+            arr1[node1] = i
+
+        # PART 2 - DFS from Node 2
+        # i counts the depth
+        i=0
+        # Loop while there isnt a dead end (!= -1)
+        while edges[node2] != -1:
+            # If Cyclical, Break
+            if arr2[node2] != len(edges):
+                break
+            # set the depth of the node in arr2, increment, move to next node
+            arr2[node2] = i
+            i+=1
+            node2 = edges[node2]
+        # If we broke cause of a dead-end, store that last node's depth
+        if edges[node2] == -1:
+            arr2[node2] = i
+
+        # PART 3 - Check for smallest maximum between n1 and n2 DFS
+        # set param for the return index, and a param for the min max
+        min_index = len(edges)
+        min_max_all_pairs = float('inf')
+        # Loop through arr1 and arr2, check for the min-max: min(max(arr1[i], arr2[i]))
+        for i in range(len(edges)):
+            # If one or the other never reached node i, skip
+            if arr1[i] == len(edges) or arr2[i] == len(edges):
+                continue
+            # If a new min-max is found, save it and the index where it was found
+            if min_max_all_pairs > max(arr1[i],arr2[i]):
+                min_index = i
+                min_max_all_pairs =  max(arr1[i],arr2[i])
+        
+        # Return the min_index if one was found, else -1
+        return min_index if min_index < len(edges) else -1
+
