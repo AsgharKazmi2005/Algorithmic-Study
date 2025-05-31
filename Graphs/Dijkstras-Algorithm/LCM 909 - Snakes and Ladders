@@ -1,0 +1,110 @@
+You are given an n x n integer matrix board where the cells are labeled from 1 to n2 in a Boustrophedon style starting from the bottom left of the board (i.e. board[n - 1][0]) and alternating direction each row.
+
+You start on square 1 of the board. In each move, starting from square curr, do the following:
+
+Choose a destination square next with a label in the range [curr + 1, min(curr + 6, n2)].
+This choice simulates the result of a standard 6-sided die roll: i.e., there are always at most 6 destinations, regardless of the size of the board.
+If next has a snake or ladder, you must move to the destination of that snake or ladder. Otherwise, you move to next.
+The game ends when you reach the square n2.
+A board square on row r and column c has a snake or ladder if board[r][c] != -1. The destination of that snake or ladder is board[r][c]. Squares 1 and n2 are not the starting points of any snake or ladder.
+
+Note that you only take a snake or ladder at most once per dice roll. If the destination to a snake or ladder is the start of another snake or ladder, you do not follow the subsequent snake or ladder.
+
+For example, suppose the board is [[-1,4],[-1,3]], and on the first move, your destination square is 2. You follow the ladder to square 3, but do not follow the subsequent ladder to 4.
+Return the least number of dice rolls required to reach the square n2. If it is not possible to reach the square, return -1.
+
+_____________________________________________________________________________________________________________________________
+
+Intuition and Implementation
+
+Please view the images associated with this problem. This is a take on a popular game snakes and ladders, and we are essentially trying to find the quickest way to win, meaning the path with the least dice rolls. The words
+'least' and 'path' should already begin ringing alarms in your head that this is a problem where we are trying to find the shortest path. Now given the nature of the snakes and ladders, it isnt always just roll 6 until the
+end, it's more complicated than that, so we can discard the thought of any simple algorithms. Next we see that we want the least rolls, meaning we should always be rolling our dice where there is the lowest current roll count.
+For this reason, we can discard DFS as it will just continue making moves (ie. 99 1s in a row) down one path. Now we are left with one option, BFS. Now BFS will work, but the issue is that it will consider slower paths along
+side longer ones as that is how a deque works. In other words, a deque does not prioritize the rolls with the least moves and highest position (on the board). Instead, we can use a priority queue to keep the highest positioned
+paths at the top. This essentially is Djikstras Algoritmn now.
+
+Now one of the hardest parts of this problem is creating the code to adhere to the Boustrophedon style. It surprises me that so many companies ask this question because the logic is unecessarily complex for interviews.
+First we derive quotient, remainder = divmod(square - 1, n) where square is the number on the box, and n is the length of the board. The quotient is the amount of full rows from the bottom we must go, and the remainder
+is the index within that row from left to right if row is left-to-right. The row is simply derived by n-1-quotient, and for the column, we need to first check if the row is an even row (RTL) or an odd row (LTR). So if it
+is even, the the column is simply the remainder. If odd however, we need to flip it, so the column would be n-1-rem. Now we can get the row, col for ANY square on the grid using this method. This is probably the most annoying
+part of the code, everything else is farily simple.
+
+First create a hashmap to store the lowest amount of moves to get to each square. So we start from the bottom left square in our priority queue, and simply use dijkstras algorithm. Inside each heappop, there are a few
+things to consider. First we need to take care of cycles. If we already visited a square, the current path may be ineffiecient so we should check our hashmap to see if this is the cheapest way before continue discovering in this path. 
+We also need to deal with ladders/snakes. If we land on a snake or ladder AFTER a move, we need to play that move out and use our get_position function to find the new position that the piece moved to. Finally, we also need to consider
+that any move to a square that exceeds n^2 is invalid, so that path should not be discovered. Now its a simple Djikstras Algorithm. See the code below.
+
+Note there are versions of this implementation that flatten the Boustrophedon structure out to save time. This can be done but it is possible that the interviewer prefers the above. In any case, Dijkstras will still be used.
+
+______________________________________________________________________________________________________________________________
+
+Time & Space Complexity
+
+The time complexity is O(n^2logn). This is because we are iterating n^2 squares, and each square has 6 different potential moves. However, due to our hashmap, each square is only visited once, so the time complexity for
+that portion is O(n^2). Then in Dijkstra's, the priority queue will cost us n^2logn, meaning n^2 heappushes, which is a logn operation. 
+
+As far as space compelxity, the heap processes up to n^2 items and so it would be O(n^2)
+
+_______________________________________________________________________________________________________________________________
+
+Code:
+
+import heapq
+
+class Solution:
+    def snakesAndLadders(self, board: List[List[int]]) -> int:
+
+        # Function to turn any square into row, col
+        def get_position(square: int, n: int) -> tuple[int, int]:
+            # Get the quotient and remainder of square-1/n
+            quot, rem = divmod(square - 1, n)
+            # The row is simply the height minus the quotient
+            row = n - 1 - quot
+            # The column is the remainder if the row is even
+            if quot % 2 == 0: 
+                col = rem
+            # The column is n-1-remainder if the row is odd
+            else:           
+                col = n - 1 - rem
+            return (row, col)
+
+        n = len(board)
+        end = n * n
+        # Priority Queue and Dijkstra hashmap for lookups
+        moves = [(0, 1)]
+        dist = {}
+
+        # Go through all potentially faster paths
+        while moves:
+            # Extract the roll count and the square
+            move_count, square = heapq.heappop(moves)
+            # If the square has been reached before, this is inefficient. Skip.
+            if square in dist:
+                continue
+            # Quickest path to the current square found, save the move_count
+            dist[square] = move_count
+
+            # If we reached the end, return the current move count
+            if square == end:
+                return move_count
+
+            # Go through all 6 dice rolls
+            for i in range(1, 7):
+                # If the next square is past the end, skip.
+                next_square = square + i
+                if next_square > end:
+                    continue
+
+                # Get the row and column using the get_position function
+                r, c = get_position(next_square, n)
+                # Handle Snakes/Ladders if we land on them by updating the square
+                if board[r][c] != -1:
+                    next_square = board[r][c]
+
+                # If the next square is not already seen, then continue discovering
+                if next_square not in dist:
+                    heapq.heappush(moves, (move_count + 1, next_square))
+                    
+        # If Dijkstra's ends without ever reaching the end, return -1
+        return -1
