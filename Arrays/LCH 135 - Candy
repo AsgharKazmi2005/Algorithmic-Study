@@ -1,0 +1,131 @@
+Problem:
+
+There are n children standing in a line. Each child is assigned a rating value given in the integer array ratings.
+
+You are giving candies to these children subjected to the following requirements:
+
+Each child must have at least one candy.
+Children with a higher rating get more candies than their neighbors.
+Return the minimum number of candies you need to have to distribute the candies to the children.
+
+________________________________________________________________________________________________________________________________
+
+Intuition & Implementation:
+
+This hard is on the easier end, but can still create great difficulty because understanding the solution is not straightfoward. However, this solution is incredibly intuitive and if you just go with your gut you will be
+on the right path. When you see this problem, the first thing that should cross your mind is to compare each student with the one next to it and if their is a ranking disparity, fix it. This is intuitive and it is
+quite literally the correct approach, so lets get more into the implementation.
+
+Ok, first off we want an array to hold the candies we are giving out, and since each child must have at least 1 candy, we can initialize it to a list of 1s. Now we loop over and compare the rankings of child i and 
+child i-1. If child i is ranked higher than child i-1 (current child is ranked higher than the one to its left), the we simply give the child i the same amount as child i-1, but give them an extra candy on top as is the
+requirement of the problem. This means if child i-1 has 2 candies, then child i gets 2+1=3 candies. This is done for the whole list of children, and we keep track of the total candy used.
+
+Now once done, it is easy to assume that we are done. However, the issue is that we did a left-to-right scan. This will work for most test cases, but there are cases where it may not work. For example, lets say we are given
+child x,y,z. child x has the highest priority, then child y, then child z. The candies list will start as [1,1,1], then [2,1,1], then [2,2,1], and done. Do you see the issue? The issue is that child z impacted child y,
+which then made the change to child x redundant. x is meant to have more candies than y, but z made them equal. The fundemental issue here is that a left to right scan only fixes elements that are in ascending order of
+ranking, and not the descending ones. Once you realize this, it is pretty obvious what to do next, we go the other way.
+
+Using the same theory as our LTR scan, now we do a RTL and we fix any discrepencies in the candies list. Going back to our x,y,z example, this RTL scan will see that i (x) has a higher ranking than i+1 (y), but the value 
+is the same, so we must fix it by incrementing x, resulting in [3,2,1] which is the correct distribution. Of course accross these two scans you must track the total candy count so bear that in mind as you fix the list. Now
+this is enough for to solve the problem, and you can see my longer code at the very bottom, but there is a trick to simplify this problem. 
+
+The trick is to simply take the max between the LTR and RTL versions. Remember our LTR was [2,2,1] and our RTL was [3,2,1], in this case taking the maxes will result in [3,2,1], and we only add the maxes to our total count
+so we do not need to track it uneccisarily elsewhere. This will save us a bunch of runtime. The simplified code is added at the bottom with my longer, well commented code (similar logic) below that.
+
+Now there is a constant space solution where we utilize four variables to keep track of all the important information, but the above solutions should suffice.
+
+_________________________________________________________________________________________________________________________________
+
+Time & Space Complexity:
+
+The time complexity is simply O(n). This is because creating the list of candies is O(n), then our LTR scan is O(n), and finally our RTL scan is O(n). O(n)+O(n)+O(n) = 3O(n) = O(n) where n is the number of kids.
+
+The space complexity is O(n) as we only need one candies list of size n where n is the number of children.
+
+_________________________________________________________________________________________________________________________________
+
+Code:
+
+
+class Solution:
+    def candy(self, ratings):
+        # Create list of candy distribution
+        candies = [1] * len(ratings)
+
+        # LTR Scan
+        for i in range(1, len(ratings)):
+            if ratings[i] > ratings[i - 1]:
+                candies[i] = candies[i - 1] + 1
+        
+        # Take the value of the last child regardless
+        total = candies[-1]
+
+        # RTL scan
+        for i in range(len(ratings) - 2, -1, -1):
+            if ratings[i] > ratings[i + 1]:
+                candies[i] = max(candies[i], candies[i + 1] + 1)
+            total += candies[i]
+        return total
+
+
+______________________________________________________________________________________________________________________________________
+
+My Original Code:
+
+class Solution:
+    def candy(self, ratings: List[int]) -> int:
+        # Create an array to track distribution
+        n=len(ratings)
+        distribution = [1] * n
+
+        # We will consider all adjacent pairs
+        i, j  = 0, 1
+        count = n
+
+        # Loop through all pairs (while j in bounds)
+        while j < n:
+
+            # If child i has a higher rating but kid j has more (or equal) candy
+            if ratings[i]<ratings[j] and distribution[i]>=distribution[j]:
+                # Fix the count by removing current j, and adding i+1
+                count = count-distribution[j]+distribution[i]+1
+                # Save the value for future computation
+                distribution[j] = distribution[i]+1
+
+            # If child j has a higher rating but kid i has more/equal candy (more is impossible)
+            elif ratings[i]>ratings[j] and distribution[j]>=distribution[i]:
+                # Fix the count by removing current i, and adding j+1
+                count = count-distribution[i]+distribution[j]+1
+                # Save the value for future computation
+                distribution[i] = distribution[j]+1
+            
+            # Move to next pair
+            j+=1
+            i+=1
+
+        """
+        Now we need to go back the other way. We do this because the above
+        code will have issues as in x,y,z we will change y because of z, but it
+        then may cause conflict with if x is meant to be of a higher rank.
+        """
+        i, j = n-2, n-1
+        # Go back to the start
+        while i >= 0:
+            # if child j has a higher rating but < candies than child i
+            if ratings[j] > ratings[i] and distribution[i]>=distribution[j]:
+                # j becomes i+1, and adjust the count accordingly
+                count = count-distribution[j]+distribution[i]+1
+                distribution[j] = distribution[i]+1
+            # If the child i has a higher rating but < candies than child j
+            elif ratings[i] > ratings[j] and distribution[j]>=distribution[i]:
+                # i becomes j+1, and adjust the count accordingly
+                count = count-distribution[i]+distribution[j]+1
+                distribution[i] = distribution[j]+1
+            # Move to next pair
+            i-=1
+            j-=1
+        
+        # return final count 
+        return count
+
+
